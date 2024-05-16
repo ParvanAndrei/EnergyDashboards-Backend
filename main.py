@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
 from fastapi.responses import PlainTextResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,15 +12,6 @@ origins = [
     "*",
     "http://localhost:3000"
 ]
-
- # Set up Keycloak
-# keycloak_config = KeycloakConfiguration(
-#      url="https://sso.your-keycloak.com/auth/",
-#      realm="<Realm Name>",
-#      client_id="<Client ID>",
-#      client_secret="<Client Secret>",
-#      authentication_scheme="Token"
-# )
 
 app = FastAPI()
 # app.include_router(todos.router)
@@ -37,6 +28,18 @@ app.add_middleware(
 async def http_exception_handler(request, exc):
     print(f"{repr(exc)}")
     return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+
+@app.get("/api/user-info")
+async def get_user_info(
+    x_remote_user: str = Header(...),  # This header is required
+    x_user_email: str = Header(...),   # This header is required
+    x_user_name: str = Header(...)     # This header is required
+):
+    return {
+        "remote_user": x_remote_user,
+        "user_email": x_user_email,
+        "user_name": x_user_name
+    }
 
 @app.get("/energy-consumption-per-minute")
 def root(start_date, end_date):
