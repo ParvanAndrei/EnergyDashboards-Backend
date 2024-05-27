@@ -1,9 +1,12 @@
-from fastapi import FastAPI, Header
-from fastapi.responses import PlainTextResponse
+from fastapi import FastAPI, Header, Depends, Request, Response
+from starlette.responses import RedirectResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import requests
 from datetime import date
+
+
 
 # from routes import todos
 # from fastapi_keycloak_middleware import KeycloakConfiguration, KeycloakMiddleware
@@ -24,22 +27,38 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request, exc):
-    print(f"{repr(exc)}")
-    return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+@app.get("/accestoken")
+def read_headers(request: Request):
+    return dict(request.headers)
 
-@app.get("/api/user-info")
-async def get_user_info(
-    x_remote_user: str = Header(...),  # This header is required
-    x_user_email: str = Header(...),   # This header is required
-    x_user_name: str = Header(...)     # This header is required
-):
-    return {
-        "remote_user": x_remote_user,
-        "user_email": x_user_email,
-        "user_name": x_user_name
-    }
+# @app.get("/accestoken")
+# # def protected_route(token: str = Depends(get_access_token)):
+# def protected_route(request: Request):
+#     # print("TOKEN HERE ", token)
+#     username = request.headers.get("OIDC_preferred_username")
+#     given_name = request.headers.get("X-User-Given-Name")
+#     family_name = request.headers.get("X-User-Family-Name")
+#     # return {"token": token}
+#     return {"username": username,
+#             "given_name" : given_name,
+#             "familit_name" : family_name
+#             }
+
+# @app.get("/accestoken")
+# def get_access_token(request: Request):
+#     access_token = request.headers.get("OIDC_preferred_username")
+#     print(request.headers)
+#     # family_name = request.headers.get("X-User-Family-Name")
+#     # given_name = request.headers.get("X-User-Given-Name")
+#     # username = request.headers.get("X-User-Username")
+#     # print("THIS IS GIVEN NAME FROM HEADER", given_name)
+#     # print("THIS IS FAMILY NAME FROM HEADER", family_name)
+#     return {
+#         "access_token": access_token
+#         # "family_name": family_name,
+#         # "given_name": given_name,
+#         # "username": username
+#     }
 
 @app.get("/energy-consumption-per-minute")
 def root(start_date, end_date):
